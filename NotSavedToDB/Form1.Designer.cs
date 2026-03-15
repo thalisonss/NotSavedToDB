@@ -42,7 +42,12 @@
             btnGenerateInsertScript = new Button();
             btnSaveProfile = new Button();
             btnLoadProfile = new Button();
+            rbInsertMissing = new RadioButton();
+            rbInsertAll = new RadioButton();
+            rbCompareOnly = new RadioButton();
+            groupBox1 = new GroupBox();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // lblSelectDBSQLite
@@ -165,11 +170,57 @@
             btnLoadProfile.UseVisualStyleBackColor = true;
             btnLoadProfile.Click += btnLoadProfile_Click;
             // 
+            // rbInsertMissing
+            // 
+            rbInsertMissing.AutoSize = true;
+            rbInsertMissing.Location = new Point(12, 46);
+            rbInsertMissing.Name = "rbInsertMissing";
+            rbInsertMissing.Size = new Size(117, 24);
+            rbInsertMissing.TabIndex = 10;
+            rbInsertMissing.TabStop = true;
+            rbInsertMissing.Text = "radioButton1";
+            rbInsertMissing.UseVisualStyleBackColor = true;
+            // 
+            // rbInsertAll
+            // 
+            rbInsertAll.AutoSize = true;
+            rbInsertAll.Location = new Point(135, 46);
+            rbInsertAll.Name = "rbInsertAll";
+            rbInsertAll.Size = new Size(117, 24);
+            rbInsertAll.TabIndex = 11;
+            rbInsertAll.TabStop = true;
+            rbInsertAll.Text = "radioButton1";
+            rbInsertAll.UseVisualStyleBackColor = true;
+            // 
+            // rbCompareOnly
+            // 
+            rbCompareOnly.AutoSize = true;
+            rbCompareOnly.Location = new Point(258, 46);
+            rbCompareOnly.Name = "rbCompareOnly";
+            rbCompareOnly.Size = new Size(117, 24);
+            rbCompareOnly.TabIndex = 12;
+            rbCompareOnly.TabStop = true;
+            rbCompareOnly.Text = "radioButton1";
+            rbCompareOnly.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(rbInsertMissing);
+            groupBox1.Controls.Add(rbCompareOnly);
+            groupBox1.Controls.Add(rbInsertAll);
+            groupBox1.Location = new Point(25, 357);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(419, 103);
+            groupBox1.TabIndex = 13;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "groupBox1";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1360, 561);
+            Controls.Add(groupBox1);
             Controls.Add(btnLoadProfile);
             Controls.Add(btnSaveProfile);
             Controls.Add(btnGenerateInsertScript);
@@ -184,6 +235,8 @@
             Text = "Form1";
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -204,5 +257,9 @@
         private Button btnGenerateInsertScript;
         private Button btnSaveProfile;
         private Button btnLoadProfile;
+        private RadioButton rbInsertMissing;
+        private RadioButton rbInsertAll;
+        private RadioButton rbCompareOnly;
+        private GroupBox groupBox1;
     }
 }

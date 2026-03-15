@@ -169,8 +169,8 @@ namespace NotSavedToDB
             return missingKeys;
         }
 
-        private void btnCompararBanco_Click(object sender, EventArgs e)
-        {
+    private void GenerateInsertMissing()
+    {
             if (string.IsNullOrWhiteSpace(txtLoadFileDBSQLite.Text))
             {
                 MessageBox.Show("Selecione o banco SQLite.");
@@ -182,9 +182,14 @@ namespace NotSavedToDB
             string connSqlServer =
                 $"Server={txtServidor.Text};Database={txtBanco.Text};Trusted_Connection=True;TrustServerCertificate=True;";
 
-            DataTable dtMissing = new DataTable();
-            dtMissing.Columns.Add("Tabela");
-            dtMissing.Columns.Add("Chave");
+            string outputFile = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "NotSavedToDB_Insert.sql");
+
+            if (File.Exists(outputFile))
+                File.Delete(outputFile);
+
+            using StreamWriter sw = new StreamWriter(outputFile, true);
 
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
@@ -202,9 +207,9 @@ namespace NotSavedToDB
 
                 string[] chaves = camposChave.Split(';');
 
-                // -----------------------------
+                // ===============================
                 // Executar SELECT no SQLite
-                // -----------------------------
+                // ===============================
 
                 DataTable sqliteData = new DataTable();
 
@@ -212,14 +217,16 @@ namespace NotSavedToDB
                 {
                     conn.Open();
 
-                    using (var cmd = new SqliteCommand(selectSQLite, conn))
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        sqliteData.Load(reader);
-                    }
+                    using var cmd = new SqliteCommand(selectSQLite, conn);
+                    using var reader = cmd.ExecuteReader();
+
+                    sqliteData.Load(reader);
                 }
 
-                // Criar DataTable apenas com chaves
+                // ===============================
+                // Criar tabela apenas com chaves
+                // ===============================
+
                 DataTable keyTable = new DataTable();
 
                 foreach (var chave in chaves)
@@ -235,245 +242,69 @@ namespace NotSavedToDB
                     keyTable.Rows.Add(newRow);
                 }
 
-                using (var conn = new SqlConnection(connSqlServer))
+                using var sqlConn = new SqlConnection(connSqlServer);
+                sqlConn.Open();
+
+                string tempTable = "#TempKeys";
+
+                // ===============================
+                // Criar temp table
+                // ===============================
+
+                StringBuilder createSql = new StringBuilder();
+                createSql.Append($"CREATE TABLE {tempTable} (");
+
+                for (int i = 0; i < chaves.Length; i++)
                 {
-                    conn.Open();
+                    createSql.Append($"{chaves[i]} NVARCHAR(200)");
 
-                    string tempTable = "#TempKeys";
-
-                    // -----------------------------
-                    // Criar Temp Table
-                    // -----------------------------
-
-                    StringBuilder createSql = new StringBuilder();
-                    createSql.Append($"CREATE TABLE {tempTable} (");
-
-                    for (int i = 0; i < chaves.Length; i++)
-                    {
-                        createSql.Append($"{chaves[i]} NVARCHAR(200)");
-
-                        if (i < chaves.Length - 1)
-                            createSql.Append(",");
-                    }
-
-                    createSql.Append(")");
-
-                    using (var cmd = new SqlCommand(createSql.ToString(), conn))
-                        cmd.ExecuteNonQuery();
-
-                    // -----------------------------
-                    // Bulk Insert das chaves
-                    // -----------------------------
-
-                    using (var bulk = new SqlBulkCopy(conn))
-                    {
-                        bulk.DestinationTableName = tempTable;
-
-                        foreach (var chave in chaves)
-                            bulk.ColumnMappings.Add(chave, chave);
-
-                        bulk.WriteToServer(keyTable);
-                    }
-
-                    // -----------------------------
-                    // Comparação
-                    // -----------------------------
-
-                    StringBuilder join = new StringBuilder();
-
-                    for (int i = 0; i < chaves.Length; i++)
-                    {
-                        join.Append($"t.{chaves[i]} = s.{chaves[i]}");
-
-                        if (i < chaves.Length - 1)
-                            join.Append(" AND ");
-                    }
-
-                    string firstKey = chaves[0];
-
-                    string compareQuery = $@"
-                SELECT s.*
-                FROM {tempTable} s
-                LEFT JOIN {tabelaDestino} t
-                    ON {join}
-                WHERE t.{firstKey} IS NULL";
-
-                    using (var cmd = new SqlCommand(compareQuery, conn))
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            List<string> keyParts = new List<string>();
-
-                            foreach (var chave in chaves)
-                                keyParts.Add(reader[chave].ToString());
-
-                            dtMissing.Rows.Add(tabelaDestino, string.Join("|", keyParts));
-                        }
-                    }
+                    if (i < chaves.Length - 1)
+                        createSql.Append(",");
                 }
-            }
 
-            if (dtMissing.Rows.Count == 0)
-            {
-                MessageBox.Show("Nenhum registro faltante encontrado.");
-                return;
-            }
+                createSql.Append(")");
 
-            Form resultForm = new Form();
-            resultForm.Text = "Chaves não encontradas no SQL Server";
-            resultForm.Width = 900;
-            resultForm.Height = 500;
+                using (var cmd = new SqlCommand(createSql.ToString(), sqlConn))
+                    cmd.ExecuteNonQuery();
 
-            DataGridView dgv = new DataGridView();
-            dgv.Dock = DockStyle.Fill;
-            dgv.ReadOnly = true;
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            dgv.DataSource = dtMissing;
+                // ===============================
+                // Criar índice
+                // ===============================
 
-            resultForm.Controls.Add(dgv);
+                string indexCols = string.Join(",", chaves);
 
-            resultForm.ShowDialog();
-        }
+                using (var cmd = new SqlCommand($"CREATE INDEX IX_TempKeys ON {tempTable} ({indexCols})", sqlConn))
+                    cmd.ExecuteNonQuery();
 
+                // ===============================
+                // Bulk insert das chaves
+                // ===============================
 
+                using (var bulk = new SqlBulkCopy(sqlConn))
+                {
+                    bulk.DestinationTableName = tempTable;
 
-    private void btnGenerateInsertScript_Click(object sender, EventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(txtLoadFileDBSQLite.Text))
-        {
-            MessageBox.Show("Selecione o banco SQLite.");
-            return;
-        }
+                    foreach (var chave in chaves)
+                        bulk.ColumnMappings.Add(chave, chave);
 
-        string sqlitePath = txtLoadFileDBSQLite.Text;
+                    bulk.WriteToServer(keyTable);
+                }
 
-        string connSqlServer =
-            $"Server={txtServidor.Text};Database={txtBanco.Text};Trusted_Connection=True;TrustServerCertificate=True;";
+                // ===============================
+                // Montar JOIN
+                // ===============================
 
-        string outputFile = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-            "NotSavedToDB_Insert.sql");
+                StringBuilder join = new StringBuilder();
 
-        if (File.Exists(outputFile))
-            File.Delete(outputFile);
+                for (int i = 0; i < chaves.Length; i++)
+                {
+                    join.Append($"t.{chaves[i]} = s.{chaves[i]}");
 
-        using StreamWriter sw = new StreamWriter(outputFile, true);
+                    if (i < chaves.Length - 1)
+                        join.Append(" AND ");
+                }
 
-        foreach (DataGridViewRow row in dataGridView1.Rows)
-        {
-            if (row.IsNewRow)
-                continue;
-
-            string tabelaDestino = row.Cells["colTabelaDestino"].Value?.ToString();
-            string camposChave = row.Cells["colCamposChave"].Value?.ToString();
-            string selectSQLite = row.Cells["colSelectSQLite"].Value?.ToString();
-
-            if (string.IsNullOrWhiteSpace(tabelaDestino) ||
-                string.IsNullOrWhiteSpace(camposChave) ||
-                string.IsNullOrWhiteSpace(selectSQLite))
-                continue;
-
-            string[] chaves = camposChave.Split(';');
-
-            // ===============================
-            // Executar SELECT no SQLite
-            // ===============================
-
-            DataTable sqliteData = new DataTable();
-
-            using (var conn = new SqliteConnection($"Data Source={sqlitePath}"))
-            {
-                conn.Open();
-
-                using var cmd = new SqliteCommand(selectSQLite, conn);
-                using var reader = cmd.ExecuteReader();
-
-                sqliteData.Load(reader);
-            }
-
-            // ===============================
-            // Criar tabela apenas com chaves
-            // ===============================
-
-            DataTable keyTable = new DataTable();
-
-            foreach (var chave in chaves)
-                keyTable.Columns.Add(chave);
-
-            foreach (DataRow dr in sqliteData.Rows)
-            {
-                var newRow = keyTable.NewRow();
-
-                foreach (var chave in chaves)
-                    newRow[chave] = dr[chave];
-
-                keyTable.Rows.Add(newRow);
-            }
-
-            using var sqlConn = new SqlConnection(connSqlServer);
-            sqlConn.Open();
-
-            string tempTable = "#TempKeys";
-
-            // ===============================
-            // Criar temp table
-            // ===============================
-
-            StringBuilder createSql = new StringBuilder();
-            createSql.Append($"CREATE TABLE {tempTable} (");
-
-            for (int i = 0; i < chaves.Length; i++)
-            {
-                createSql.Append($"{chaves[i]} NVARCHAR(200)");
-
-                if (i < chaves.Length - 1)
-                    createSql.Append(",");
-            }
-
-            createSql.Append(")");
-
-            using (var cmd = new SqlCommand(createSql.ToString(), sqlConn))
-                cmd.ExecuteNonQuery();
-
-            // ===============================
-            // Criar índice
-            // ===============================
-
-            string indexCols = string.Join(",", chaves);
-
-            using (var cmd = new SqlCommand($"CREATE INDEX IX_TempKeys ON {tempTable} ({indexCols})", sqlConn))
-                cmd.ExecuteNonQuery();
-
-            // ===============================
-            // Bulk insert das chaves
-            // ===============================
-
-            using (var bulk = new SqlBulkCopy(sqlConn))
-            {
-                bulk.DestinationTableName = tempTable;
-
-                foreach (var chave in chaves)
-                    bulk.ColumnMappings.Add(chave, chave);
-
-                bulk.WriteToServer(keyTable);
-            }
-
-            // ===============================
-            // Montar JOIN
-            // ===============================
-
-            StringBuilder join = new StringBuilder();
-
-            for (int i = 0; i < chaves.Length; i++)
-            {
-                join.Append($"t.{chaves[i]} = s.{chaves[i]}");
-
-                if (i < chaves.Length - 1)
-                    join.Append(" AND ");
-            }
-
-            string compareQuery = $@"
+                string compareQuery = $@"
 SELECT s.*
 FROM {tempTable} s
 WHERE NOT EXISTS
@@ -483,96 +314,274 @@ WHERE NOT EXISTS
     WHERE {join}
 )";
 
-            List<string> missingKeys = new List<string>();
+                List<string> missingKeys = new List<string>();
 
-            using (var cmd = new SqlCommand(compareQuery, sqlConn))
-            {
-                cmd.CommandTimeout = 300;
+                using (var cmd = new SqlCommand(compareQuery, sqlConn))
+                {
+                    cmd.CommandTimeout = 300;
 
-                using var reader = cmd.ExecuteReader();
+                    using var reader = cmd.ExecuteReader();
 
-                while (reader.Read())
+                    while (reader.Read())
+                    {
+                        List<string> keyParts = new List<string>();
+
+                        foreach (var chave in chaves)
+                            keyParts.Add(reader[chave].ToString());
+
+                        missingKeys.Add(string.Join("|", keyParts));
+                    }
+                }
+
+                if (missingKeys.Count == 0)
+                    continue;
+
+                // ===============================
+                // Gerar INSERT
+                // ===============================
+
+                sw.WriteLine($"-- {tabelaDestino}");
+
+                foreach (DataRow dr in sqliteData.Rows)
                 {
                     List<string> keyParts = new List<string>();
 
                     foreach (var chave in chaves)
-                        keyParts.Add(reader[chave].ToString());
+                        keyParts.Add(dr[chave].ToString());
 
-                    missingKeys.Add(string.Join("|", keyParts));
-                }
-            }
+                    string key = string.Join("|", keyParts);
 
-            if (missingKeys.Count == 0)
-                continue;
-
-            // ===============================
-            // Gerar INSERT
-            // ===============================
-
-            sw.WriteLine($"-- {tabelaDestino}");
-
-            foreach (DataRow dr in sqliteData.Rows)
-            {
-                List<string> keyParts = new List<string>();
-
-                foreach (var chave in chaves)
-                    keyParts.Add(dr[chave].ToString());
-
-                string key = string.Join("|", keyParts);
-
-                if (!missingKeys.Contains(key))
-                    continue;
-
-                List<string> columns = new List<string>();
-                List<string> values = new List<string>();
-
-                foreach (DataColumn col in sqliteData.Columns)
-                {
-                    string columnName = col.ColumnName;
-                    columns.Add(columnName);
-
-                    // REGRA mc1LastUpdate
-                    if (columnName.Equals("mc1LastUpdate", StringComparison.OrdinalIgnoreCase))
-                    {
-                        values.Add("GETDATE()");
+                    if (!missingKeys.Contains(key))
                         continue;
-                    }
 
-                    object value = dr[col];
+                    List<string> columns = new List<string>();
+                    List<string> values = new List<string>();
 
-                    if (value == DBNull.Value)
+                    foreach (DataColumn col in sqliteData.Columns)
                     {
-                        values.Add("NULL");
-                    }
-                    else
-                    {
-                        string val = value.ToString();
+                        string columnName = col.ColumnName;
+                        columns.Add(columnName);
 
-                        // Converter decimal com vírgula para ponto
-                        if (decimal.TryParse(val, out _))
+                        // REGRA mc1LastUpdate
+                        if (columnName.Equals("mc1LastUpdate", StringComparison.OrdinalIgnoreCase))
                         {
-                            val = val.Replace(",", ".");
+                            values.Add("GETDATE()");
+                            continue;
                         }
 
-                        // escapar aspas
-                        val = val.Replace("'", "''");
+                        object value = dr[col];
 
-                        values.Add($"'{val}'");
+                        if (value == DBNull.Value)
+                        {
+                            values.Add("NULL");
+                        }
+                        else
+                        {
+                            string val = value.ToString();
+
+                            // Converter decimal com vírgula para ponto
+                            if (decimal.TryParse(val, out _))
+                            {
+                                val = val.Replace(",", ".");
+                            }
+
+                            // escapar aspas
+                            val = val.Replace("'", "''");
+
+                            values.Add($"'{val}'");
+                        }
                     }
+
+                    string insert =
+                        $"INSERT INTO {tabelaDestino} ({string.Join(",", columns)}) VALUES ({string.Join(",", values)});";
+
+                    sw.WriteLine(insert);
                 }
 
-                string insert =
-                    $"INSERT INTO {tabelaDestino} ({string.Join(",", columns)}) VALUES ({string.Join(",", values)});";
-
-                sw.WriteLine(insert);
+                sw.WriteLine();
             }
 
-            sw.WriteLine();
+            sw.Close();
+
+            MessageBox.Show($"Script gerado em:\n{outputFile}");
         }
 
-        sw.Close();
+        private void GenerateInsertAll()
+        {
+            string sqlitePath = txtLoadFileDBSQLite.Text;
 
-        MessageBox.Show($"Script gerado em:\n{outputFile}");
+            string outputFile = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                "Insert_All.sql");
+
+            using StreamWriter sw = new StreamWriter(outputFile);
+
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.IsNewRow)
+                    continue;
+
+                string tabelaDestino = row.Cells["colTabelaDestino"].Value?.ToString();
+                string selectSQLite = row.Cells["colSelectSQLite"].Value?.ToString();
+
+                if (string.IsNullOrWhiteSpace(tabelaDestino) ||
+                    string.IsNullOrWhiteSpace(selectSQLite))
+                    continue;
+
+                DataTable sqliteData = new DataTable();
+
+                using (var conn = new SqliteConnection($"Data Source={sqlitePath}"))
+                {
+                    conn.Open();
+
+                    using var cmd = new SqliteCommand(selectSQLite, conn);
+                    using var reader = cmd.ExecuteReader();
+
+                    sqliteData.Load(reader);
+                }
+
+                sw.WriteLine($"-- {tabelaDestino}");
+
+                foreach (DataRow dr in sqliteData.Rows)
+                {
+                    List<string> columns = new List<string>();
+                    List<string> values = new List<string>();
+
+                    foreach (DataColumn col in sqliteData.Columns)
+                    {
+                        string columnName = col.ColumnName;
+
+                        columns.Add(columnName);
+
+                        if (columnName.Equals("mc1LastUpdate", StringComparison.OrdinalIgnoreCase))
+                        {
+                            values.Add("GETDATE()");
+                            continue;
+                        }
+
+                        object value = dr[col];
+
+                        if (value == DBNull.Value)
+                        {
+                            values.Add("NULL");
+                        }
+                        else
+                        {
+                            string val = value.ToString();
+
+                            val = val.Replace(",", ".");
+                            val = val.Replace("'", "''");
+
+                            values.Add($"'{val}'");
+                        }
+                    }
+
+                    string insert =
+                        $"INSERT INTO {tabelaDestino} ({string.Join(",", columns)}) VALUES ({string.Join(",", values)});";
+
+                    sw.WriteLine(insert);
+                }
+
+                sw.WriteLine();
+            }
+
+            MessageBox.Show("Script gerado com sucesso.");
+        }
+
+        private void GenerateCompareCsv()
+        {
+            string sqlitePath = txtLoadFileDBSQLite.Text;
+
+            string connSqlServer =
+                $"Server={txtServidor.Text};Database={txtBanco.Text};Trusted_Connection=True;TrustServerCertificate=True;";
+
+            string missingFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "missing_keys.csv");
+            string existingFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "existing_keys.csv");
+
+            using StreamWriter swMissing = new StreamWriter(missingFile);
+            using StreamWriter swExisting = new StreamWriter(existingFile);
+
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.IsNewRow)
+                    continue;
+
+                string tabelaDestino = row.Cells["colTabelaDestino"].Value?.ToString();
+                string camposChave = row.Cells["colCamposChave"].Value?.ToString();
+                string selectSQLite = row.Cells["colSelectSQLite"].Value?.ToString();
+
+                if (string.IsNullOrWhiteSpace(tabelaDestino) ||
+                    string.IsNullOrWhiteSpace(camposChave) ||
+                    string.IsNullOrWhiteSpace(selectSQLite))
+                    continue;
+
+                string[] chaves = camposChave.Split(';');
+
+                DataTable sqliteData = new DataTable();
+
+                using (var conn = new SqliteConnection($"Data Source={sqlitePath}"))
+                {
+                    conn.Open();
+
+                    using var cmd = new SqliteCommand(selectSQLite, conn);
+                    using var reader = cmd.ExecuteReader();
+
+                    sqliteData.Load(reader);
+                }
+
+                swMissing.WriteLine(string.Join(",", chaves));
+                swExisting.WriteLine(string.Join(",", chaves));
+
+                using var sqlConn = new SqlConnection(connSqlServer);
+                sqlConn.Open();
+
+                foreach (DataRow dr in sqliteData.Rows)
+                {
+                    List<string> conditions = new List<string>();
+
+                    foreach (var chave in chaves)
+                    {
+                        string val = dr[chave].ToString().Replace("'", "''");
+                        conditions.Add($"{chave} = '{val}'");
+                    }
+
+                    string sql = $"SELECT COUNT(1) FROM {tabelaDestino} WHERE {string.Join(" AND ", conditions)}";
+
+                    using var cmd = new SqlCommand(sql, sqlConn);
+
+                    int count = (int)cmd.ExecuteScalar();
+
+                    string keyLine = string.Join(",", chaves.Select(c => dr[c].ToString()));
+
+                    if (count == 0)
+                        swMissing.WriteLine(keyLine);
+                    else
+                        swExisting.WriteLine(keyLine);
+                }
+            }
+
+            MessageBox.Show("CSV gerado.");
+        }
+
+
+    private void btnGenerateInsertScript_Click(object sender, EventArgs e)
+    {
+            if (rbInsertMissing.Checked)
+            {
+                GenerateInsertMissing();
+            }
+            else if (rbInsertAll.Checked)
+            {
+                GenerateInsertAll();
+            }
+            else if (rbCompareOnly.Checked)
+            {
+                GenerateCompareCsv();
+            }
+            else
+            {
+                MessageBox.Show("Selecione um modo de execução.");
+            }
     }
 
 
