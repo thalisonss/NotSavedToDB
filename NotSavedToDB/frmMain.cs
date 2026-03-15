@@ -8,9 +8,9 @@ using System.Text.Json;
 
 namespace NotSavedToDB
 {
-    public partial class Form1 : Form
+    public partial class frmMain : Form
     {
-        public Form1()
+        public frmMain()
         {
             InitializeComponent();
         }
@@ -650,6 +650,7 @@ WHERE NOT EXISTS
                 );
             }
 
+            lblProfile.Text = $"Perfil: {Path.GetFileNameWithoutExtension(dialog.FileName)}";
             MessageBox.Show("Perfil carregado.");
         }
     }
