@@ -36,7 +36,6 @@
             colCamposChave = new DataGridViewTextBoxColumn();
             colSelectSQLite = new DataGridViewTextBoxColumn();
             colTestSelect = new DataGridViewButtonColumn();
-            btnCompararBanco = new Button();
             txtBanco = new TextBox();
             txtServidor = new TextBox();
             btnGenerateInsertScript = new Button();
@@ -115,16 +114,6 @@
             colTestSelect.MinimumWidth = 6;
             colTestSelect.Name = "colTestSelect";
             colTestSelect.Width = 125;
-            // 
-            // btnCompararBanco
-            // 
-            btnCompararBanco.Location = new Point(1030, 522);
-            btnCompararBanco.Name = "btnCompararBanco";
-            btnCompararBanco.Size = new Size(171, 29);
-            btnCompararBanco.TabIndex = 4;
-            btnCompararBanco.Text = "Comparar com banco";
-            btnCompararBanco.UseVisualStyleBackColor = true;
-            btnCompararBanco.Click += btnCompararBanco_Click;
             // 
             // txtBanco
             // 
@@ -226,7 +215,6 @@
             Controls.Add(btnGenerateInsertScript);
             Controls.Add(txtServidor);
             Controls.Add(txtBanco);
-            Controls.Add(btnCompararBanco);
             Controls.Add(dataGridView1);
             Controls.Add(txtLoadFileDBSQLite);
             Controls.Add(btnSelectDBSQLite);
@@ -251,7 +239,6 @@
         private DataGridViewTextBoxColumn colCamposChave;
         private DataGridViewTextBoxColumn colSelectSQLite;
         private DataGridViewButtonColumn colTestSelect;
-        private Button btnCompararBanco;
         private TextBox txtBanco;
         private TextBox txtServidor;
         private Button btnGenerateInsertScript;
