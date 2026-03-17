@@ -36,8 +36,6 @@
             colCamposChave = new DataGridViewTextBoxColumn();
             colSelectSQLite = new DataGridViewTextBoxColumn();
             colTestSelect = new DataGridViewButtonColumn();
-            txtBanco = new TextBox();
-            txtServidor = new TextBox();
             btnGenerateInsertScript = new Button();
             btnSaveProfile = new Button();
             btnLoadProfile = new Button();
@@ -46,29 +44,48 @@
             rbCompareOnly = new RadioButton();
             groupBox1 = new GroupBox();
             groupBox2 = new GroupBox();
-            groupBox3 = new GroupBox();
-            lblProfile = new Label();
-            groupBox4 = new GroupBox();
-            label2 = new Label();
-            label1 = new Label();
-            groupBox5 = new GroupBox();
-            Executar = new GroupBox();
-            radioButton2 = new RadioButton();
-            radioButton1 = new RadioButton();
+            rbDBSQLServerOrigem = new RadioButton();
+            rbDBOrigem = new RadioButton();
             tabControl1 = new TabControl();
             tpDBOrigemSQLite = new TabPage();
             tpDBOrigemSQLServer = new TabPage();
-            rbDBOrigem = new RadioButton();
-            radioButton3 = new RadioButton();
+            label3 = new Label();
+            txtDBOrigem = new TextBox();
+            label4 = new Label();
+            txtServerOrigem = new TextBox();
+            groupBox3 = new GroupBox();
+            lblProfile = new Label();
+            groupBox4 = new GroupBox();
+            rbDBSQLServerDestino = new RadioButton();
+            rbDBDestino = new RadioButton();
+            groupBox5 = new GroupBox();
+            Executar = new GroupBox();
+            rdUPSERT = new RadioButton();
+            rdGenerateFileInsert = new RadioButton();
+            progressBarProcess = new ProgressBar();
+            tabControl2 = new TabControl();
+            tabPage1 = new TabPage();
+            txtLoadFileDBSQLiteDestino = new TextBox();
+            label1 = new Label();
+            btnSelectDBSQLiteDestino = new Button();
+            tabPage2 = new TabPage();
+            label2 = new Label();
+            txtBanco = new TextBox();
+            label5 = new Label();
+            txtServidor = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
+            tabControl1.SuspendLayout();
+            tpDBOrigemSQLite.SuspendLayout();
+            tpDBOrigemSQLServer.SuspendLayout();
             groupBox3.SuspendLayout();
             groupBox4.SuspendLayout();
             groupBox5.SuspendLayout();
             Executar.SuspendLayout();
-            tabControl1.SuspendLayout();
-            tpDBOrigemSQLite.SuspendLayout();
+            tabControl2.SuspendLayout();
+            tabPage1.SuspendLayout();
+            tabPage2.SuspendLayout();
             SuspendLayout();
             // 
             // lblSelectDBSQLite
@@ -139,20 +156,6 @@
             colTestSelect.MinimumWidth = 6;
             colTestSelect.Name = "colTestSelect";
             colTestSelect.Width = 125;
-            // 
-            // txtBanco
-            // 
-            txtBanco.Location = new Point(331, 56);
-            txtBanco.Name = "txtBanco";
-            txtBanco.Size = new Size(300, 27);
-            txtBanco.TabIndex = 5;
-            // 
-            // txtServidor
-            // 
-            txtServidor.Location = new Point(6, 56);
-            txtServidor.Name = "txtServidor";
-            txtServidor.Size = new Size(319, 27);
-            txtServidor.TabIndex = 6;
             // 
             // btnGenerateInsertScript
             // 
@@ -231,7 +234,7 @@
             // 
             // groupBox2
             // 
-            groupBox2.Controls.Add(radioButton3);
+            groupBox2.Controls.Add(rbDBSQLServerOrigem);
             groupBox2.Controls.Add(rbDBOrigem);
             groupBox2.Controls.Add(tabControl1);
             groupBox2.Location = new Point(25, 96);
@@ -240,6 +243,97 @@
             groupBox2.TabIndex = 14;
             groupBox2.TabStop = false;
             groupBox2.Text = "Banco de dados Origem";
+            // 
+            // rbDBSQLServerOrigem
+            // 
+            rbDBSQLServerOrigem.AutoSize = true;
+            rbDBSQLServerOrigem.Location = new Point(223, 26);
+            rbDBSQLServerOrigem.Name = "rbDBSQLServerOrigem";
+            rbDBSQLServerOrigem.Size = new Size(208, 24);
+            rbDBSQLServerOrigem.TabIndex = 14;
+            rbDBSQLServerOrigem.TabStop = true;
+            rbDBSQLServerOrigem.Text = "Banco de dados SQLServer";
+            rbDBSQLServerOrigem.UseVisualStyleBackColor = true;
+            // 
+            // rbDBOrigem
+            // 
+            rbDBOrigem.AutoSize = true;
+            rbDBOrigem.Location = new Point(15, 26);
+            rbDBOrigem.Name = "rbDBOrigem";
+            rbDBOrigem.Size = new Size(186, 24);
+            rbDBOrigem.TabIndex = 13;
+            rbDBOrigem.TabStop = true;
+            rbDBOrigem.Text = "Banco de Dados SQLite";
+            rbDBOrigem.UseVisualStyleBackColor = true;
+            // 
+            // tabControl1
+            // 
+            tabControl1.Controls.Add(tpDBOrigemSQLite);
+            tabControl1.Controls.Add(tpDBOrigemSQLServer);
+            tabControl1.Location = new Point(12, 56);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(656, 98);
+            tabControl1.TabIndex = 3;
+            // 
+            // tpDBOrigemSQLite
+            // 
+            tpDBOrigemSQLite.Controls.Add(txtLoadFileDBSQLite);
+            tpDBOrigemSQLite.Controls.Add(lblSelectDBSQLite);
+            tpDBOrigemSQLite.Controls.Add(btnSelectDBSQLite);
+            tpDBOrigemSQLite.Location = new Point(4, 29);
+            tpDBOrigemSQLite.Name = "tpDBOrigemSQLite";
+            tpDBOrigemSQLite.Padding = new Padding(3);
+            tpDBOrigemSQLite.Size = new Size(648, 65);
+            tpDBOrigemSQLite.TabIndex = 0;
+            tpDBOrigemSQLite.Text = "SQLite";
+            tpDBOrigemSQLite.UseVisualStyleBackColor = true;
+            // 
+            // tpDBOrigemSQLServer
+            // 
+            tpDBOrigemSQLServer.Controls.Add(label3);
+            tpDBOrigemSQLServer.Controls.Add(txtDBOrigem);
+            tpDBOrigemSQLServer.Controls.Add(label4);
+            tpDBOrigemSQLServer.Controls.Add(txtServerOrigem);
+            tpDBOrigemSQLServer.Location = new Point(4, 29);
+            tpDBOrigemSQLServer.Name = "tpDBOrigemSQLServer";
+            tpDBOrigemSQLServer.Padding = new Padding(3);
+            tpDBOrigemSQLServer.Size = new Size(648, 65);
+            tpDBOrigemSQLServer.TabIndex = 1;
+            tpDBOrigemSQLServer.Text = "SQLServer";
+            tpDBOrigemSQLServer.UseVisualStyleBackColor = true;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(342, 9);
+            label3.Name = "label3";
+            label3.Size = new Size(53, 20);
+            label3.TabIndex = 11;
+            label3.Text = "Banco:";
+            // 
+            // txtDBOrigem
+            // 
+            txtDBOrigem.Location = new Point(342, 32);
+            txtDBOrigem.Name = "txtDBOrigem";
+            txtDBOrigem.Size = new Size(300, 27);
+            txtDBOrigem.TabIndex = 9;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(17, 9);
+            label4.Name = "label4";
+            label4.Size = new Size(67, 20);
+            label4.TabIndex = 8;
+            label4.Text = "Servidor:";
+            // 
+            // txtServerOrigem
+            // 
+            txtServerOrigem.Location = new Point(17, 32);
+            txtServerOrigem.Name = "txtServerOrigem";
+            txtServerOrigem.Size = new Size(319, 27);
+            txtServerOrigem.TabIndex = 10;
             // 
             // groupBox3
             // 
@@ -263,34 +357,36 @@
             // 
             // groupBox4
             // 
-            groupBox4.Controls.Add(label2);
-            groupBox4.Controls.Add(label1);
-            groupBox4.Controls.Add(txtServidor);
-            groupBox4.Controls.Add(txtBanco);
+            groupBox4.Controls.Add(rbDBSQLServerDestino);
+            groupBox4.Controls.Add(rbDBDestino);
             groupBox4.Location = new Point(711, 96);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new Size(637, 146);
+            groupBox4.Size = new Size(637, 168);
             groupBox4.TabIndex = 16;
             groupBox4.TabStop = false;
             groupBox4.Text = "Banco de dados Destino";
             // 
-            // label2
+            // rbDBSQLServerDestino
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(331, 33);
-            label2.Name = "label2";
-            label2.Size = new Size(53, 20);
-            label2.TabIndex = 7;
-            label2.Text = "Banco:";
+            rbDBSQLServerDestino.AutoSize = true;
+            rbDBSQLServerDestino.Location = new Point(220, 26);
+            rbDBSQLServerDestino.Name = "rbDBSQLServerDestino";
+            rbDBSQLServerDestino.Size = new Size(208, 24);
+            rbDBSQLServerDestino.TabIndex = 16;
+            rbDBSQLServerDestino.Text = "Banco de dados SQLServer";
+            rbDBSQLServerDestino.UseVisualStyleBackColor = true;
             // 
-            // label1
+            // rbDBDestino
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(6, 33);
-            label1.Name = "label1";
-            label1.Size = new Size(67, 20);
-            label1.TabIndex = 3;
-            label1.Text = "Servidor:";
+            rbDBDestino.AutoSize = true;
+            rbDBDestino.Checked = true;
+            rbDBDestino.Location = new Point(12, 26);
+            rbDBDestino.Name = "rbDBDestino";
+            rbDBDestino.Size = new Size(186, 24);
+            rbDBDestino.TabIndex = 15;
+            rbDBDestino.TabStop = true;
+            rbDBDestino.Text = "Banco de Dados SQLite";
+            rbDBDestino.UseVisualStyleBackColor = true;
             // 
             // groupBox5
             // 
@@ -304,8 +400,8 @@
             // 
             // Executar
             // 
-            Executar.Controls.Add(radioButton2);
-            Executar.Controls.Add(radioButton1);
+            Executar.Controls.Add(rdUPSERT);
+            Executar.Controls.Add(rdGenerateFileInsert);
             Executar.Controls.Add(btnGenerateInsertScript);
             Executar.Location = new Point(705, 497);
             Executar.Name = "Executar";
@@ -314,89 +410,139 @@
             Executar.TabStop = false;
             Executar.Text = "Executar";
             // 
-            // radioButton2
+            // rdUPSERT
             // 
-            radioButton2.AutoSize = true;
-            radioButton2.Enabled = false;
-            radioButton2.Location = new Point(15, 68);
-            radioButton2.Name = "radioButton2";
-            radioButton2.Size = new Size(356, 24);
-            radioButton2.TabIndex = 14;
-            radioButton2.TabStop = true;
-            radioButton2.Text = "Inserir no banco de dados (Em Desenvolvimento)";
-            radioButton2.UseVisualStyleBackColor = true;
+            rdUPSERT.AutoSize = true;
+            rdUPSERT.Enabled = false;
+            rdUPSERT.Location = new Point(15, 68);
+            rdUPSERT.Name = "rdUPSERT";
+            rdUPSERT.Size = new Size(356, 24);
+            rdUPSERT.TabIndex = 14;
+            rdUPSERT.TabStop = true;
+            rdUPSERT.Text = "Inserir no banco de dados (Em Desenvolvimento)";
+            rdUPSERT.UseVisualStyleBackColor = true;
             // 
-            // radioButton1
+            // rdGenerateFileInsert
             // 
-            radioButton1.AutoSize = true;
-            radioButton1.Location = new Point(15, 38);
-            radioButton1.Name = "radioButton1";
-            radioButton1.Size = new Size(189, 24);
-            radioButton1.TabIndex = 13;
-            radioButton1.TabStop = true;
-            radioButton1.Text = "Gerar Arquivos de Insert";
-            radioButton1.UseVisualStyleBackColor = true;
+            rdGenerateFileInsert.AutoSize = true;
+            rdGenerateFileInsert.Location = new Point(15, 38);
+            rdGenerateFileInsert.Name = "rdGenerateFileInsert";
+            rdGenerateFileInsert.Size = new Size(189, 24);
+            rdGenerateFileInsert.TabIndex = 13;
+            rdGenerateFileInsert.TabStop = true;
+            rdGenerateFileInsert.Text = "Gerar Arquivos de Insert";
+            rdGenerateFileInsert.UseVisualStyleBackColor = true;
             // 
-            // tabControl1
+            // progressBarProcess
             // 
-            tabControl1.Controls.Add(tpDBOrigemSQLite);
-            tabControl1.Controls.Add(tpDBOrigemSQLServer);
-            tabControl1.Location = new Point(12, 56);
-            tabControl1.Name = "tabControl1";
-            tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(656, 98);
-            tabControl1.TabIndex = 3;
+            progressBarProcess.Location = new Point(31, 639);
+            progressBarProcess.Name = "progressBarProcess";
+            progressBarProcess.Size = new Size(1317, 29);
+            progressBarProcess.TabIndex = 19;
             // 
-            // tpDBOrigemSQLite
+            // tabControl2
             // 
-            tpDBOrigemSQLite.Controls.Add(txtLoadFileDBSQLite);
-            tpDBOrigemSQLite.Controls.Add(lblSelectDBSQLite);
-            tpDBOrigemSQLite.Controls.Add(btnSelectDBSQLite);
-            tpDBOrigemSQLite.Location = new Point(4, 29);
-            tpDBOrigemSQLite.Name = "tpDBOrigemSQLite";
-            tpDBOrigemSQLite.Padding = new Padding(3);
-            tpDBOrigemSQLite.Size = new Size(648, 65);
-            tpDBOrigemSQLite.TabIndex = 0;
-            tpDBOrigemSQLite.Text = "tabPage1";
-            tpDBOrigemSQLite.UseVisualStyleBackColor = true;
+            tabControl2.Controls.Add(tabPage1);
+            tabControl2.Controls.Add(tabPage2);
+            tabControl2.Location = new Point(717, 156);
+            tabControl2.Name = "tabControl2";
+            tabControl2.SelectedIndex = 0;
+            tabControl2.Size = new Size(625, 102);
+            tabControl2.TabIndex = 17;
             // 
-            // tpDBOrigemSQLServer
+            // tabPage1
             // 
-            tpDBOrigemSQLServer.Location = new Point(4, 29);
-            tpDBOrigemSQLServer.Name = "tpDBOrigemSQLServer";
-            tpDBOrigemSQLServer.Padding = new Padding(3);
-            tpDBOrigemSQLServer.Size = new Size(648, 65);
-            tpDBOrigemSQLServer.TabIndex = 1;
-            tpDBOrigemSQLServer.Text = "tabPage2";
-            tpDBOrigemSQLServer.UseVisualStyleBackColor = true;
+            tabPage1.Controls.Add(txtLoadFileDBSQLiteDestino);
+            tabPage1.Controls.Add(label1);
+            tabPage1.Controls.Add(btnSelectDBSQLiteDestino);
+            tabPage1.Location = new Point(4, 29);
+            tabPage1.Name = "tabPage1";
+            tabPage1.Padding = new Padding(3);
+            tabPage1.Size = new Size(617, 69);
+            tabPage1.TabIndex = 0;
+            tabPage1.Text = "SQLite";
+            tabPage1.UseVisualStyleBackColor = true;
             // 
-            // rbDBOrigem
+            // txtLoadFileDBSQLiteDestino
             // 
-            rbDBOrigem.AutoSize = true;
-            rbDBOrigem.Location = new Point(15, 26);
-            rbDBOrigem.Name = "rbDBOrigem";
-            rbDBOrigem.Size = new Size(186, 24);
-            rbDBOrigem.TabIndex = 13;
-            rbDBOrigem.TabStop = true;
-            rbDBOrigem.Text = "Banco de Dados SQLite";
-            rbDBOrigem.UseVisualStyleBackColor = true;
+            txtLoadFileDBSQLiteDestino.Enabled = false;
+            txtLoadFileDBSQLiteDestino.Location = new Point(156, 23);
+            txtLoadFileDBSQLiteDestino.Name = "txtLoadFileDBSQLiteDestino";
+            txtLoadFileDBSQLiteDestino.Size = new Size(318, 27);
+            txtLoadFileDBSQLiteDestino.TabIndex = 2;
             // 
-            // radioButton3
+            // label1
             // 
-            radioButton3.AutoSize = true;
-            radioButton3.Location = new Point(223, 26);
-            radioButton3.Name = "radioButton3";
-            radioButton3.Size = new Size(208, 24);
-            radioButton3.TabIndex = 14;
-            radioButton3.TabStop = true;
-            radioButton3.Text = "Banco de dados SQLServer";
-            radioButton3.UseVisualStyleBackColor = true;
+            label1.AutoSize = true;
+            label1.Location = new Point(6, 29);
+            label1.Name = "label1";
+            label1.Size = new Size(147, 20);
+            label1.TabIndex = 0;
+            label1.Text = "Database SQLite .db:";
+            // 
+            // btnSelectDBSQLiteDestino
+            // 
+            btnSelectDBSQLiteDestino.Location = new Point(480, 22);
+            btnSelectDBSQLiteDestino.Name = "btnSelectDBSQLiteDestino";
+            btnSelectDBSQLiteDestino.Size = new Size(131, 29);
+            btnSelectDBSQLiteDestino.TabIndex = 1;
+            btnSelectDBSQLiteDestino.Text = "Carregar Arquivo";
+            btnSelectDBSQLiteDestino.UseVisualStyleBackColor = true;
+            btnSelectDBSQLiteDestino.Click += btnSelectDBSQLiteDestino_Click;
+            // 
+            // tabPage2
+            // 
+            tabPage2.Controls.Add(label2);
+            tabPage2.Controls.Add(txtBanco);
+            tabPage2.Controls.Add(label5);
+            tabPage2.Controls.Add(txtServidor);
+            tabPage2.Location = new Point(4, 29);
+            tabPage2.Name = "tabPage2";
+            tabPage2.Padding = new Padding(3);
+            tabPage2.Size = new Size(617, 69);
+            tabPage2.TabIndex = 1;
+            tabPage2.Text = "SQLServer";
+            tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(342, 12);
+            label2.Name = "label2";
+            label2.Size = new Size(53, 20);
+            label2.TabIndex = 11;
+            label2.Text = "Banco:";
+            // 
+            // txtBanco
+            // 
+            txtBanco.Location = new Point(342, 32);
+            txtBanco.Name = "txtBanco";
+            txtBanco.Size = new Size(269, 27);
+            txtBanco.TabIndex = 9;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(17, 12);
+            label5.Name = "label5";
+            label5.Size = new Size(67, 20);
+            label5.TabIndex = 8;
+            label5.Text = "Servidor:";
+            // 
+            // txtServidor
+            // 
+            txtServidor.Location = new Point(17, 32);
+            txtServidor.Name = "txtServidor";
+            txtServidor.Size = new Size(319, 27);
+            txtServidor.TabIndex = 10;
             // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1360, 648);
+            ClientSize = new Size(1360, 666);
+            Controls.Add(tabControl2);
+            Controls.Add(progressBarProcess);
             Controls.Add(Executar);
             Controls.Add(groupBox5);
             Controls.Add(groupBox4);
@@ -411,15 +557,22 @@
             groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
+            tabControl1.ResumeLayout(false);
+            tpDBOrigemSQLite.ResumeLayout(false);
+            tpDBOrigemSQLite.PerformLayout();
+            tpDBOrigemSQLServer.ResumeLayout(false);
+            tpDBOrigemSQLServer.PerformLayout();
             groupBox3.ResumeLayout(false);
             groupBox4.ResumeLayout(false);
             groupBox4.PerformLayout();
             groupBox5.ResumeLayout(false);
             Executar.ResumeLayout(false);
             Executar.PerformLayout();
-            tabControl1.ResumeLayout(false);
-            tpDBOrigemSQLite.ResumeLayout(false);
-            tpDBOrigemSQLite.PerformLayout();
+            tabControl2.ResumeLayout(false);
+            tabPage1.ResumeLayout(false);
+            tabPage1.PerformLayout();
+            tabPage2.ResumeLayout(false);
+            tabPage2.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -429,8 +582,6 @@
         private Button btnSelectDBSQLite;
         private TextBox txtLoadFileDBSQLite;
         private DataGridView dataGridView1;
-        private TextBox txtBanco;
-        private TextBox txtServidor;
         private Button btnGenerateInsertScript;
         private Button btnSaveProfile;
         private Button btnLoadProfile;
@@ -442,20 +593,35 @@
         private GroupBox groupBox3;
         private Label lblProfile;
         private GroupBox groupBox4;
-        private Label label2;
-        private Label label1;
         private GroupBox groupBox5;
         private DataGridViewTextBoxColumn colTabelaDestino;
         private DataGridViewTextBoxColumn colCamposChave;
         private DataGridViewTextBoxColumn colSelectSQLite;
         private DataGridViewButtonColumn colTestSelect;
         private GroupBox Executar;
-        private RadioButton radioButton2;
-        private RadioButton radioButton1;
+        private RadioButton rdUPSERT;
+        private RadioButton rdGenerateFileInsert;
         private TabControl tabControl1;
         private TabPage tpDBOrigemSQLite;
         private TabPage tpDBOrigemSQLServer;
-        private RadioButton radioButton3;
+        private RadioButton rbDBSQLServerOrigem;
         private RadioButton rbDBOrigem;
+        private Label label3;
+        private TextBox txtDBOrigem;
+        private Label label4;
+        private TextBox txtServerOrigem;
+        private ProgressBar progressBarProcess;
+        private RadioButton rbDBSQLServerDestino;
+        private RadioButton rbDBDestino;
+        private TabControl tabControl2;
+        private TabPage tabPage1;
+        private TextBox txtLoadFileDBSQLiteDestino;
+        private Label label1;
+        private Button btnSelectDBSQLiteDestino;
+        private TabPage tabPage2;
+        private Label label2;
+        private TextBox txtBanco;
+        private Label label5;
+        private TextBox txtServidor;
     }
 }
