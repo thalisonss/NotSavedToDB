@@ -2,6 +2,7 @@
 using Microsoft.Data.Sqlite;
 using SQLitePCL;
 using System.Data;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 
@@ -29,6 +30,54 @@ namespace NotSavedToDB
             }
         }
 
+        private void ExecuteUpsert()
+        {
+            progressBarProcess.Value = 0;
+            progressBarProcess.Maximum = dataGridView1.Rows.Cast<DataGridViewRow>().Count(r => !r.IsNewRow);
+
+            if (progressBarProcess.Maximum == 0)
+            {
+                MessageBox.Show("Adicione ao menos uma configuração para executar.");
+                return;
+            }
+
+            using IDbConnection conn = GetDestinationConnection();
+            conn.Open();
+
+            int progress = 0;
+
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.IsNewRow)
+                    continue;
+
+                progress++;
+                progressBarProcess.Value = progress;
+                Application.DoEvents();
+
+                string tabelaDestino = row.Cells["colTabelaDestino"].Value?.ToString();
+                string camposChave = row.Cells["colCamposChave"].Value?.ToString();
+                string selectSource = row.Cells["colSelectSQLite"].Value?.ToString();
+
+                if (string.IsNullOrWhiteSpace(tabelaDestino) ||
+                    string.IsNullOrWhiteSpace(camposChave) ||
+                    string.IsNullOrWhiteSpace(selectSource))
+                    continue;
+
+                string[] chaves = camposChave
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                if (chaves.Length == 0)
+                    continue;
+
+                DataTable sourceData = LoadSourceData(selectSource);
+
+                ExecuteUpsert(conn, tabelaDestino, sourceData, chaves);
+            }
+
+            MessageBox.Show("UPSERT finalizado.");
+        }
+
         public class SyncConfig
         {
             public string TabelaDestino { get; set; }
@@ -40,6 +89,11 @@ namespace NotSavedToDB
         {
             dataGridView1.Columns["colSelectSQLite"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+
+            tabControl1.TabPages.Remove(tpDBOrigemSQLServer);
+            tabControl1.TabPages.Remove(tpDBOrigemSQLite);
+            tabControl2.TabPages.Remove(tpDBOrigemSQLServerDestino);
+            tabControl2.TabPages.Remove(tpDBOrigemSQLiteDestino);
         }
 
         private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -84,35 +138,47 @@ namespace NotSavedToDB
                     return;
                 }
 
-                ExecuteSQLiteSelect(select);
+                ExecutePreviewSelect(select);
             }
 
 
         }
 
-        private void ExecuteSQLiteSelect(string select)
+        private void ExecutePreviewSelect(string select)
         {
-            string path = txtLoadFileDBSQLite.Text;
-
-            if (!File.Exists(path))
-            {
-                MessageBox.Show("Arquivo SQLite não encontrado.");
-                return;
-            }
-
-            string connString = $"Data Source={path}";
+            string path = string.Empty;
 
             DataTable dt = new DataTable();
 
-            using (var conn = new SqliteConnection(connString))
+            if (rbDBOrigem.Checked)
             {
+                path = txtLoadFileDBSQLite.Text;
+
+                if (!File.Exists(path))
+                {
+                    MessageBox.Show("Arquivo SQLite não encontrado.");
+                    return;
+                }
+
+                using var conn = new SqliteConnection($"Data Source={path}");
                 conn.Open();
 
-                using (var cmd = new SqliteCommand(select, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    dt.Load(reader);
-                }
+                using var cmd = new SqliteCommand(select, conn);
+                using var reader = cmd.ExecuteReader();
+
+                dt.Load(reader);
+
+            }
+            else
+            {
+                using var conn = new SqlConnection(
+                    $"Server={txtServerOrigem.Text};Database={txtDBOrigem.Text};Trusted_Connection=True;TrustServerCertificate=True;");
+                conn.Open();
+
+                using var cmd = new SqlCommand(select, conn);
+                using var reader = cmd.ExecuteReader();
+
+                dt.Load(reader);
             }
 
             FrmSQLiteResult frm = new FrmSQLiteResult();
@@ -695,6 +761,26 @@ DO UPDATE SET {string.Join(",", updates)};
             profile.Server = txtServidor.Text;
             profile.Database = txtBanco.Text;
 
+            profile.SourceSqlitePath = txtLoadFileDBSQLite.Text;
+            profile.SourceSqlServer = txtServerOrigem.Text;
+            profile.SourceSqlDatabase = txtDBOrigem.Text;
+
+            profile.DestinationSqlitePath = txtLoadFileDBSQLiteDestino.Text;
+            profile.DestinationSqlServer = txtServidor.Text;
+            profile.DestinationSqlDatabase = txtBanco.Text;
+
+            profile.IsSourceSqlite = rbDBOrigem.Checked;
+            profile.IsSourceSqlServer = rbDBSQLServerOrigem.Checked;
+            profile.IsDestinationSqlite = rbDBDestino.Checked;
+            profile.IsDestinationSqlServer = rbDBSQLServerDestino.Checked;
+
+            profile.ModeInsertAll = rbInsertAll.Checked;
+            profile.ModeCompareOnly = rbCompareOnly.Checked;
+            profile.ModeInsertMissing = rbInsertMissing.Checked;
+
+            profile.ExecuteGenerateInsertFile = rdGenerateFileInsert.Checked;
+            profile.ExecuteUpsert = rdUPSERT.Checked;
+
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
                 if (row.IsNewRow)
@@ -732,8 +818,31 @@ DO UPDATE SET {string.Join(",", updates)};
             ProfileConfig profile =
                 JsonSerializer.Deserialize<ProfileConfig>(json);
 
-            txtServidor.Text = profile.Server;
-            txtBanco.Text = profile.Database;
+            if (profile == null)
+            {
+                MessageBox.Show("Arquivo de perfil inválido.");
+                return;
+            }
+
+            txtLoadFileDBSQLite.Text = profile.SourceSqlitePath ?? string.Empty;
+            txtServerOrigem.Text = profile.SourceSqlServer ?? string.Empty;
+            txtDBOrigem.Text = profile.SourceSqlDatabase ?? string.Empty;
+
+            txtLoadFileDBSQLiteDestino.Text = profile.DestinationSqlitePath ?? string.Empty;
+            txtServidor.Text = profile.DestinationSqlServer ?? profile.Server ?? string.Empty;
+            txtBanco.Text = profile.DestinationSqlDatabase ?? profile.Database ?? string.Empty;
+
+            rbDBOrigem.Checked = profile.IsSourceSqlite || !profile.IsSourceSqlServer;
+            rbDBSQLServerOrigem.Checked = profile.IsSourceSqlServer;
+            rbDBDestino.Checked = profile.IsDestinationSqlite || !profile.IsDestinationSqlServer;
+            rbDBSQLServerDestino.Checked = profile.IsDestinationSqlServer;
+
+            rbInsertAll.Checked = profile.ModeInsertAll;
+            rbCompareOnly.Checked = profile.ModeCompareOnly;
+            rbInsertMissing.Checked = profile.ModeInsertMissing || (!profile.ModeInsertAll && !profile.ModeCompareOnly);
+
+            rdGenerateFileInsert.Checked = profile.ExecuteGenerateInsertFile || !profile.ExecuteUpsert;
+            rdUPSERT.Checked = profile.ExecuteUpsert;
 
             dataGridView1.Rows.Clear();
 
@@ -792,6 +901,51 @@ DO UPDATE SET {string.Join(",", updates)};
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 txtLoadFileDBSQLiteDestino.Text = dialog.FileName;
+            }
+        }
+
+        private void rbDBOrigem_CheckedChanged(object sender, EventArgs e)
+        {
+            tabControl1.TabPages.Clear();
+            tabControl1.TabPages.Add(tpDBOrigemSQLite);
+            tabControl1.SelectedTab = tpDBOrigemSQLite;
+        }
+
+        private void rbDBSQLServerOrigem_CheckedChanged(object sender, EventArgs e)
+        {
+            tabControl1.TabPages.Clear();
+            tabControl1.TabPages.Add(tpDBOrigemSQLServer);
+            tabControl1.SelectedTab = tpDBOrigemSQLServer;
+        }
+
+        private void rbDBDestino_CheckedChanged(object sender, EventArgs e)
+        {
+            tabControl2.TabPages.Clear();
+            tabControl2.TabPages.Add(tpDBOrigemSQLiteDestino);
+            tabControl2.SelectedTab = tpDBOrigemSQLiteDestino;
+        }
+
+        private void rbDBSQLServerDestino_CheckedChanged(object sender, EventArgs e)
+        {
+            tabControl2.TabPages.Clear();
+            tabControl2.TabPages.Add(tpDBOrigemSQLServerDestino);
+            tabControl2.SelectedTab = tpDBOrigemSQLServerDestino;
+        }
+
+        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.Value is string texto && texto.Length > 50)
+            {
+                e.Value = texto.Substring(0, 50) + "...";
+            }
+        }
+
+        private void dataGridView1_CellToolTipTextNeeded(object sender, DataGridViewCellToolTipTextNeededEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                var valor = dataGridView1[e.ColumnIndex, e.RowIndex].Value?.ToString();
+                e.ToolTipText = valor;
             }
         }
     }
