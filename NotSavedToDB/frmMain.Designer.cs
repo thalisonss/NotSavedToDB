@@ -32,6 +32,10 @@
             btnSelectDBSQLite = new Button();
             txtLoadFileDBSQLite = new TextBox();
             dataGridView1 = new DataGridView();
+            colTabelaDestino = new DataGridViewTextBoxColumn();
+            colCamposChave = new DataGridViewTextBoxColumn();
+            colSelectSQLite = new DataGridViewTextBoxColumn();
+            colTestSelect = new DataGridViewButtonColumn();
             btnGenerateInsertScript = new Button();
             btnSaveProfile = new Button();
             btnLoadProfile = new Button();
@@ -69,10 +73,8 @@
             txtBanco = new TextBox();
             label5 = new Label();
             txtServidor = new TextBox();
-            colTabelaDestino = new DataGridViewTextBoxColumn();
-            colCamposChave = new DataGridViewTextBoxColumn();
-            colSelectSQLite = new DataGridViewTextBoxColumn();
-            colTestSelect = new DataGridViewButtonColumn();
+            Logs = new GroupBox();
+            txtLogs = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -86,6 +88,7 @@
             tabControl2.SuspendLayout();
             tpDBOrigemSQLiteDestino.SuspendLayout();
             tpDBOrigemSQLServerDestino.SuspendLayout();
+            Logs.SuspendLayout();
             SuspendLayout();
             // 
             // lblSelectDBSQLite
@@ -124,12 +127,38 @@
             dataGridView1.Location = new Point(9, 26);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 51;
-            dataGridView1.Size = new Size(1299, 189);
+            dataGridView1.Size = new Size(1296, 189);
             dataGridView1.TabIndex = 3;
             dataGridView1.CellContentClick += dataGridView1_CellContentClick;
             dataGridView1.CellDoubleClick += dataGridView1_CellDoubleClick;
             dataGridView1.CellFormatting += dataGridView1_CellFormatting;
             dataGridView1.CellToolTipTextNeeded += dataGridView1_CellToolTipTextNeeded;
+            // 
+            // colTabelaDestino
+            // 
+            colTabelaDestino.HeaderText = "Tabela Destino";
+            colTabelaDestino.MinimumWidth = 6;
+            colTabelaDestino.Name = "colTabelaDestino";
+            // 
+            // colCamposChave
+            // 
+            colCamposChave.HeaderText = "Campos Chave (;)";
+            colCamposChave.MinimumWidth = 6;
+            colCamposChave.Name = "colCamposChave";
+            // 
+            // colSelectSQLite
+            // 
+            colSelectSQLite.HeaderText = "SELECT SQLite";
+            colSelectSQLite.MinimumWidth = 6;
+            colSelectSQLite.Name = "colSelectSQLite";
+            colSelectSQLite.ReadOnly = true;
+            // 
+            // colTestSelect
+            // 
+            colTestSelect.FillWeight = 30F;
+            colTestSelect.HeaderText = "Visualizar Dados";
+            colTestSelect.MinimumWidth = 6;
+            colTestSelect.Name = "colTestSelect";
             // 
             // btnGenerateInsertScript
             // 
@@ -202,7 +231,7 @@
             groupBox1.Controls.Add(rbInsertAll);
             groupBox1.Location = new Point(34, 497);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(665, 136);
+            groupBox1.Size = new Size(1106, 136);
             groupBox1.TabIndex = 13;
             groupBox1.TabStop = false;
             groupBox1.Text = "Modo de execução";
@@ -371,7 +400,7 @@
             groupBox5.Controls.Add(dataGridView1);
             groupBox5.Location = new Point(37, 270);
             groupBox5.Name = "groupBox5";
-            groupBox5.Size = new Size(1314, 221);
+            groupBox5.Size = new Size(1311, 221);
             groupBox5.TabIndex = 17;
             groupBox5.TabStop = false;
             groupBox5.Text = "Configurações de integrações";
@@ -384,7 +413,7 @@
             Executar.Controls.Add(btnGenerateInsertScript);
             Executar.Location = new Point(705, 497);
             Executar.Name = "Executar";
-            Executar.Size = new Size(640, 136);
+            Executar.Size = new Size(643, 136);
             Executar.TabIndex = 18;
             Executar.TabStop = false;
             Executar.Text = "Executar";
@@ -515,37 +544,33 @@
             txtServidor.Size = new Size(319, 27);
             txtServidor.TabIndex = 10;
             // 
-            // colTabelaDestino
+            // Logs
             // 
-            colTabelaDestino.HeaderText = "Tabela Destino";
-            colTabelaDestino.MinimumWidth = 6;
-            colTabelaDestino.Name = "colTabelaDestino";
+            Logs.Controls.Add(txtLogs);
+            Logs.Location = new Point(1354, 21);
+            Logs.Name = "Logs";
+            Logs.Size = new Size(435, 633);
+            Logs.TabIndex = 20;
+            Logs.TabStop = false;
+            Logs.Text = "Logs";
             // 
-            // colCamposChave
+            // txtLogs
             // 
-            colCamposChave.HeaderText = "Campos Chave (;)";
-            colCamposChave.MinimumWidth = 6;
-            colCamposChave.Name = "colCamposChave";
-            // 
-            // colSelectSQLite
-            // 
-            colSelectSQLite.HeaderText = "SELECT SQLite";
-            colSelectSQLite.MinimumWidth = 6;
-            colSelectSQLite.Name = "colSelectSQLite";
-            colSelectSQLite.ReadOnly = true;
-            // 
-            // colTestSelect
-            // 
-            colTestSelect.FillWeight = 30F;
-            colTestSelect.HeaderText = "Visualizar Dados";
-            colTestSelect.MinimumWidth = 6;
-            colTestSelect.Name = "colTestSelect";
+            txtLogs.Enabled = false;
+            txtLogs.Location = new Point(6, 26);
+            txtLogs.Multiline = true;
+            txtLogs.Name = "txtLogs";
+            txtLogs.ReadOnly = true;
+            txtLogs.ScrollBars = ScrollBars.Vertical;
+            txtLogs.Size = new Size(423, 601);
+            txtLogs.TabIndex = 3;
             // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1360, 666);
+            ClientSize = new Size(1801, 666);
+            Controls.Add(Logs);
             Controls.Add(tabControl2);
             Controls.Add(progressBarProcess);
             Controls.Add(Executar);
@@ -578,6 +603,8 @@
             tpDBOrigemSQLiteDestino.PerformLayout();
             tpDBOrigemSQLServerDestino.ResumeLayout(false);
             tpDBOrigemSQLServerDestino.PerformLayout();
+            Logs.ResumeLayout(false);
+            Logs.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -628,5 +655,7 @@
         private DataGridViewTextBoxColumn colCamposChave;
         private DataGridViewTextBoxColumn colSelectSQLite;
         private DataGridViewButtonColumn colTestSelect;
+        private GroupBox Logs;
+        private TextBox txtLogs;
     }
 }
